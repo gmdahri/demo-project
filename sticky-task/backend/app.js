@@ -16,13 +16,30 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-pool.connect((err) => {
+pool.connect(async (err) => {
   if (err) {
     console.error('Error connecting to the database', err);
   } else {
     console.log('Connected to the PostgreSQL database');
+    
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS sticky_list (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `;
+    
+    pool.query(createTableQuery, (err, result) => {
+      if (err) {
+        console.error('Error creating table', err);
+      } else {
+        console.log('Table created or already exists');
+      }
+    });
   }
 });
+
 
 app.get('/', (req, res) => {
   pool.query('SELECT NOW()', (err, result) => {
